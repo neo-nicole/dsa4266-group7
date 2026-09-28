@@ -11,9 +11,11 @@ data/
   train.csv, val.csv, test.csv, vocab.json, config.json   cleaned splits (from cleaning_and_eda)
 notebooks/              one notebook per step / model
   cleaning_and_eda.ipynb
+  urlbert_training.ipynb
 src/                    shared code
   load_data.py          load splits, config, vocab
   evaluate.py           metrics (clean + adversarial), save predictions
+models/                 pretrained model files (URLBERT config + vocab; weights not in git)
 results/                metrics, plots, prediction csvs (created by model notebooks)
 ```
 

@@ -30,6 +30,11 @@ def adversarial_metrics(labels, p_clean, p_adv, threshold=0.5):
     }
 
 
+def regex_baseline(urls):
+    # reference rule: legit only if bare https://www.<domain>, returns p_phish (0 or 1)
+    return (~pd.Series(urls).str.match(r"^https://www\.[^/?#]+$")).astype(float).to_numpy()
+
+
 def save_preds(path, urls, labels, p_phish):
     # common format for all models
     pd.DataFrame({"URL": urls, "label": labels, "p_phish": p_phish}).to_csv(path, index=False)
@@ -50,8 +55,7 @@ if __name__ == "__main__":
     # sanity check: regex rule baseline on test
     from load_data import load_splits
     test = load_splits()["test"]
-    rule = (~test.URL.str.match(r"^https://www\.[^/?#]+$")).astype(float)  # 1 = phishing
-    m = evaluate(test.label, rule)
+    m = evaluate(test.label, regex_baseline(test.URL))
     print("regex baseline:", {k: round(v, 4) for k, v in m.items() if k != "confusion_matrix"})
     assert round(m["accuracy"], 4) == 0.9976 and round(m["f1"], 4) == 0.9971
     print("all checks passed")
