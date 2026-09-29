@@ -1,0 +1,13 @@
+# torch unpinned so RONIN keeps its preinstalled CUDA build
+torch
+transformers==4.46.3
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+tldextract
+tensorboard
+tqdm
+ipykernel
+gdown
