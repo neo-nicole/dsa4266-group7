@@ -4,3 +4,5 @@ __pycache__/
 checkpoints/
 runs/
 *.pt
+.venv/
+results/*smoke*
