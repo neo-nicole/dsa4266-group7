@@ -30,9 +30,9 @@ def adversarial_metrics(labels, p_clean, p_adv, threshold=0.5):
     }
 
 
-def regex_baseline(urls):
-    # reference rule: legit only if bare https://www.<domain>, returns p_phish (0 or 1)
-    return (~pd.Series(urls).str.match(r"^https://www\.[^/?#]+$")).astype(float).to_numpy()
+def path_baseline(urls):
+    # reference rule: phishing if URL has a path/query/fragment (all legit URLs are bare domains), returns p_phish (0 or 1)
+    return pd.Series(urls).str.contains(r"[/?#]").astype(float).to_numpy()
 
 
 def save_preds(path, urls, labels, p_phish):
@@ -52,10 +52,10 @@ if __name__ == "__main__":
     assert a["n_attempts"] == 2 and a["attack_success_rate"] == 0.5
     assert np.isclose(a["confidence_reduction"], (0.6 - 0.1 + 0.1) / 3)
 
-    # sanity check: regex rule baseline on test
+    # sanity check: path rule baseline on test
     from load_data import load_splits
     test = load_splits()["test"]
-    m = evaluate(test.label, regex_baseline(test.URL))
-    print("regex baseline:", {k: round(v, 4) for k, v in m.items() if k != "confusion_matrix"})
-    assert round(m["accuracy"], 4) == 0.9976 and round(m["f1"], 4) == 0.9971
+    m = evaluate(test.label, path_baseline(test.URL))
+    print("path baseline:", {k: round(v, 4) for k, v in m.items() if k != "confusion_matrix"})
+    assert round(m["accuracy"], 4) == 0.621 and round(m["f1"], 4) == 0.1716
     print("all checks passed")
