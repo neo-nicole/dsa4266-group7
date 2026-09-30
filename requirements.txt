@@ -1,12 +1,13 @@
 # torch unpinned so RONIN keeps its preinstalled CUDA build
 torch
 transformers==4.46.3
-numpy
-pandas
-scikit-learn
+# pinned: train/val/test split changes with these versions
+numpy==2.5.3
+pandas==3.0.6
+scikit-learn==1.9.1
+tldextract==5.3.2
 matplotlib
 seaborn
-tldextract
 tensorboard
 tqdm
 ipykernel
