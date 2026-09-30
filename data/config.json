@@ -1,6 +1,6 @@
 {
  "max_len": 256,
- "vocab_size": 60,
+ "vocab_size": 67,
  "budget": 3,
  "positive_class": "phishing (label 0)"
 }
