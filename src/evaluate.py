@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
+from sklearn.metrics import (accuracy_score, average_precision_score, confusion_matrix, f1_score, precision_score,
+                             recall_score, roc_auc_score)
 
 PHISH = 0  # positive class
 
@@ -14,6 +15,9 @@ def evaluate(labels, p_phish, threshold=0.5):
         "precision": float(precision_score(labels, pred, pos_label=PHISH, zero_division=0)),
         "recall": float(recall_score(labels, pred, pos_label=PHISH, zero_division=0)),
         "f1": float(f1_score(labels, pred, pos_label=PHISH, zero_division=0)),
+        # threshold-free, scored on p_phish with phishing as positive
+        "roc_auc": float(roc_auc_score(labels == PHISH, p_phish)),
+        "pr_auc": float(average_precision_score(labels == PHISH, p_phish)),
         "confusion_matrix": confusion_matrix(labels, pred, labels=[PHISH, 1]).tolist(),  # rows = true [phish, legit]
     }
 
@@ -47,6 +51,7 @@ if __name__ == "__main__":
     m = evaluate(y, p)
     assert m["confusion_matrix"] == [[2, 1], [1, 1]]
     assert np.isclose(m["recall"], 2 / 3) and np.isclose(m["precision"], 2 / 3) and np.isclose(m["accuracy"], 3 / 5)
+    assert np.isclose(m["roc_auc"], 5 / 6) and np.isclose(m["pr_auc"], (1 + 1 + 3 / 4) / 3)
 
     a = adversarial_metrics(y, p, [0.3, 0.9, 0.1, 0.6, 0.1])  # 2 attempts, 1 success
     assert a["n_attempts"] == 2 and a["attack_success_rate"] == 0.5
