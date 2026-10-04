@@ -1,0 +1,24 @@
+{
+    "model": "Character-level CNN",
+    "dataset": "test_original",
+    "accuracy": 0.9042502696871629,
+    "precision": 0.9447816256099012,
+    "recall": 0.8189601815556014,
+    "f1": 0.8773829916560756,
+    "confusion_matrix": [
+        [
+            13017,
+            464
+        ],
+        [
+            1755,
+            7939
+        ]
+    ],
+    "label_mapping": {
+        "original_label_0": "phishing",
+        "original_label_1": "legitimate",
+        "model_label_0": "legitimate",
+        "model_label_1": "phishing"
+    }
+}
