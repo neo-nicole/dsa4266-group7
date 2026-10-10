@@ -7,11 +7,12 @@ ext = tldextract.TLDExtract(suffix_list_urls=())  # offline snapshot, same as ED
 URL_CHARS = re.compile(r"[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]*")  # RFC 3986
 BAD_PCT = re.compile(r"%(?![0-9a-fA-F]{2})")
 LABEL = re.compile(r"[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?")  # DNS label: no edge '-', <= 63 chars
+SCHEME = re.compile(r"[a-zA-Z][a-zA-Z0-9+.\-]*://")  # only at the start, '://' can also appear in queries
 
 
 def parts(url):
     # splits URL into (hostname, registered domain, port, userinfo, scheme), raises ValueError if unparseable
-    s = urlsplit(url if "://" in url else "http://" + url)
+    s = urlsplit(url if SCHEME.match(url) else "http://" + url)
     host = s.hostname or ""
     e = ext(host)
     reg = ".".join(x for x in (e.domain, e.suffix) if x) or host
@@ -86,5 +87,6 @@ if __name__ == "__main__":
 
     assert invalid_reason("ph.gp", "ph.gp/a") == ""  # appending a path to a bare domain
     assert invalid_reason("paypal.com", "paypa1.com") == "registered domain changed"
+    assert invalid_reason("a.com/u?q=https://b.com", "x.com/u?q=https://b.com") == "registered domain changed"
     assert edit_distance("kitten", "sitting") == 3 and edit_distance("x" * 5000 + "a", "x" * 5000 + "b") == 1
     print("all checks passed")
