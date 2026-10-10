@@ -34,12 +34,21 @@ def edit_distance(a, b):
     return prev[-1]
 
 
+def canonical(url):
+    # same cleaning as EDA canonicalize_model_url: no scheme, no leading www/www2, no trailing '/'
+    url = re.sub(r"^[A-Za-z][A-Za-z0-9+.\-]*://", "", url)
+    url = re.sub(r"^www\d*\.", "", url, flags=re.IGNORECASE)
+    return re.sub(r"/+$", "", url)
+
+
 def structure_error(orig, adv):
     # returns "" if adv is a valid URL with the same domain/port/userinfo as orig, else the reason of invalidity
     if not URL_CHARS.fullmatch(adv):
         return "bad character"
     if BAD_PCT.search(adv):
         return "bad % encoding"
+    if adv.count("#") > 1:
+        return "bad fragment"  # only one '#' allowed (RFC 3986), no dataset URL has two
     try:
         host, reg, *rest = parts(adv)
     except ValueError:
@@ -51,6 +60,8 @@ def structure_error(orig, adv):
         return "port/userinfo/scheme changed"
     if host != o_host and not (len(host) <= 253 and all(LABEL.fullmatch(l) for l in host.split("."))):
         return "invalid hostname"  # only checked if the host was edited
+    if canonical(adv) != adv and canonical(orig) == orig:
+        return "not canonical"  # cleaning would undo the edit (9 original URLs are already non-canonical)
     return ""
 
 
@@ -79,6 +90,8 @@ if __name__ == "__main__":
            "a@login.paypal-x.com/verify?id=1#top": "port/userinfo/scheme changed",
            "login.paypal-x.com/ver fy?id=1#top": "bad character",
            "login.paypal-x.com/verify?id=1#top%1": "bad % encoding",
+           "login.paypal-x.com/verify?id=1#to#p": "bad fragment",
+           "login.paypal-x.com/verify?id=1#top/": "not canonical",
            "login.paypal-x.com/verify?id=1#topabcd": "over budget"}
     for a in ok:
         assert invalid_reason(o, a) == "", a
@@ -86,6 +99,10 @@ if __name__ == "__main__":
         assert invalid_reason(o, a) == r, (a, invalid_reason(o, a))
 
     assert invalid_reason("ph.gp", "ph.gp/a") == ""  # appending a path to a bare domain
+    assert invalid_reason("ph.gp/a", "ph.gp/a#b") == ""  # adding a fragment
+    assert invalid_reason("ph.gp", "ph.gp/") == "not canonical"  # trailing '/'
+    assert invalid_reason("w.ph.gp/a", "www.ph.gp/a") == "not canonical"  # leading www.
+    assert invalid_reason("www4.me/a", "www4.me/b") == ""  # already non-canonical original
     assert invalid_reason("paypal.com", "paypa1.com") == "registered domain changed"
     assert invalid_reason("a.com/u?q=https://b.com", "x.com/u?q=https://b.com") == "registered domain changed"
     assert edit_distance("kitten", "sitting") == 3 and edit_distance("x" * 5000 + "a", "x" * 5000 + "b") == 1
