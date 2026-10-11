@@ -1,0 +1,46 @@
+{
+ "split": "test",
+ "phishing": 9694,
+ "missed_by_model1": 1755,
+ "attacked": 7939,
+ "flipped": 333,
+ "edited_not_flipped": 6747,
+ "not_edited": 859,
+ "duplicates_dropped": 613,
+ "success_within_edits": {
+  "1": 0.006172061972540622,
+  "2": 0.017508502330268294,
+  "3": 0.04194482932359239
+ },
+ "edited_parts": {
+  "subdomain": 5679,
+  "path": 514,
+  "query": 496,
+  "fragment": 120,
+  "path+query": 105,
+  "path+fragment": 90,
+  "subdomain+path+fragment": 20,
+  "subdomain+path": 19,
+  "subdomain+query": 13,
+  "path+query+fragment": 12,
+  "subdomain+path+query": 7,
+  "subdomain+fragment": 4,
+  "query+fragment": 1
+ },
+ "flipped_parts": {
+  "query": 178,
+  "subdomain": 76,
+  "fragment": 71,
+  "path": 5,
+  "subdomain+fragment": 1,
+  "path+query": 1,
+  "path+fragment": 1
+ },
+ "n_edits": {
+  "0": 859,
+  "1": 55,
+  "2": 148,
+  "3": 6877
+ },
+ "sec_per_url": 0.0409
+}
