@@ -19,19 +19,30 @@ def parts(url):
     return host, reg, s.port, s.netloc.rpartition("@")[0], s.scheme
 
 
-def edit_distance(a, b):
+def edit_distance(a, b, k=None):
     # Levenshtein distance; strip shared prefix/suffix first so long URLs with local edits stay fast
-    while a and b and a[0] == b[0]:
-        a, b = a[1:], b[1:]
-    while a and b and a[-1] == b[-1]:
-        a, b = a[:-1], b[:-1]
-    prev = list(range(len(b) + 1))
-    for i, ca in enumerate(a, 1):
-        cur = [i]
-        for j, cb in enumerate(b, 1):
-            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+    # with k, only cells within k of the diagonal are computed and anything over k returns k + 1
+    # (edits far apart in a long URL would otherwise cost len^2)
+    p = 0
+    while p < min(len(a), len(b)) and a[p] == b[p]:
+        p += 1
+    s = 0
+    while s < min(len(a), len(b)) - p and a[-1 - s] == b[-1 - s]:
+        s += 1
+    a, b = a[p:len(a) - s], b[p:len(b) - s]
+    k = max(len(a), len(b)) if k is None else k
+    if abs(len(a) - len(b)) > k:
+        return k + 1
+    prev = {j: j for j in range(min(len(b), k) + 1)}
+    for i in range(1, len(a) + 1):
+        cur = {}
+        for j in range(max(0, i - k), min(len(b), i + k) + 1):
+            cur[j] = i if j == 0 else min(prev.get(j, k + 1) + 1, cur.get(j - 1, k + 1) + 1,
+                                          prev.get(j - 1, k + 1) + (a[i - 1] != b[j - 1]))
+        if min(cur.values()) > k:
+            return k + 1
         prev = cur
-    return prev[-1]
+    return min(prev[len(b)], k + 1)
 
 
 def canonical(url):
@@ -67,7 +78,7 @@ def structure_error(orig, adv):
 
 def invalid_reason(orig, adv, k=3):
     # returns "" if adv is a valid adversarial version of orig within k char edits
-    if edit_distance(orig, adv) > k:
+    if edit_distance(orig, adv, k) > k:
         return "over budget"
     return structure_error(orig, adv)
 
@@ -106,4 +117,8 @@ if __name__ == "__main__":
     assert invalid_reason("paypal.com", "paypa1.com") == "registered domain changed"
     assert invalid_reason("a.com/u?q=https://b.com", "x.com/u?q=https://b.com") == "registered domain changed"
     assert edit_distance("kitten", "sitting") == 3 and edit_distance("x" * 5000 + "a", "x" * 5000 + "b") == 1
+    assert edit_distance("kitten", "sitting", 2) == 3 and edit_distance("ab", "ba", 3) == 2
+    long = "a.com/" + "x" * 6000
+    assert edit_distance(long, "b" + long[1:] + "y", 3) == 2  # edits 6000 chars apart, fast with k
+    assert invalid_reason(long, "b" + long[1:] + "yyy") == "over budget"
     print("all checks passed")
