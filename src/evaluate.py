@@ -9,32 +9,66 @@ from validate_adv import parts
 
 PHISH = 0  # positive class
 
+WEBAPP = "web.app" # for evaluation - filtering by webapp & others
 
-def evaluate(labels, p_phish, threshold=0.5):
+def host_of(url):
+    rest = re.sub(r"^[a-zA-Z][a-zA-Z0-9+.\-]*://", "", str(url))
+    host = re.split(r"[/?#]", rest, maxsplit=1)[0].rpartition("@")[2].split(":")[0]
+    return host.lower()
+
+
+def group_mask(urls, group="all"):
+    # boolean mask over urls: "all" | "web.app" (host is web.app or *.web.app) | "other" (everything else)
+    urls = list(urls)
+    if group == "all":
+        return np.ones(len(urls), dtype=bool)
+    is_webapp = np.array([(h == WEBAPP or h.endswith("." + WEBAPP)) for h in map(host_of, urls)], dtype=bool)
+    if group == "web.app":
+        return is_webapp
+    if group == "other":
+        return ~is_webapp
+    raise ValueError(f"unknown group {group!r}; use 'all', 'web.app' or 'other'")
+
+
+def evaluate(labels, p_phish, threshold=0.5, urls=None, group="all"):
+    # group != "all" restricts to web.app / other; urls must be aligned with labels
     # predict phishing when p_phish >= threshold
-    labels = np.asarray(labels)
+    labels, p_phish = np.asarray(labels), np.asarray(p_phish)
+    if group != "all":
+        if urls is None:
+            raise ValueError("group filtering needs urls aligned with labels")
+        keep = group_mask(urls, group)
+        labels, p_phish = labels[keep], p_phish[keep]
     pred = np.where(np.asarray(p_phish) >= threshold, PHISH, 1)
-    return {
+    both = len(np.unique(labels)) == 2 # AUCs are undefined if the subset has a single class
+    out = {
         "accuracy": float(accuracy_score(labels, pred)),
         "precision": float(precision_score(labels, pred, pos_label=PHISH, zero_division=0)),
         "recall": float(recall_score(labels, pred, pos_label=PHISH, zero_division=0)),
         "f1": float(f1_score(labels, pred, pos_label=PHISH, zero_division=0)),
-        # threshold-free, scored on p_phish with phishing as positive
-        "roc_auc": float(roc_auc_score(labels == PHISH, p_phish)),
-        "pr_auc": float(average_precision_score(labels == PHISH, p_phish)),
+        "roc_auc": float(roc_auc_score(labels == PHISH, p_phish)) if both else float("nan"),
+        "pr_auc": float(average_precision_score(labels == PHISH, p_phish)) if both else float("nan"),
         "confusion_matrix": confusion_matrix(labels, pred, labels=[PHISH, 1]).tolist(),  # rows = true [phish, legit]
     }
+    if group != "all":
+        out["n"] = int(len(labels))   # only added for filtered runs
+    return out
 
 
-def adversarial_metrics(labels, p_clean, p_adv, threshold=0.5):
+def adversarial_metrics(labels, p_clean, p_adv, threshold=0.5, urls=None, group="all"):
     # rows aligned: p_adv[i] is the score of the attacked version of URL i
     labels, p_clean, p_adv = map(np.asarray, (labels, p_clean, p_adv))
+    if group != "all":
+        if urls is None:
+            raise ValueError("group filtering needs urls aligned with labels (use adv.orig_URL)")
+        keep = group_mask(urls, group)
+        labels, p_clean, p_adv = labels[keep], p_clean[keep], p_adv[keep]
     phish = labels == PHISH
     attempts = phish & (p_clean >= threshold)  # phishing that was detected before the attack
     return {
         "attack_success_rate": float((p_adv[attempts] < threshold).mean()) if attempts.any() else float("nan"),
         "n_attempts": int(attempts.sum()),
-        "confidence_reduction": float((p_clean[phish] - p_adv[phish]).mean()),
+        "confidence_reduction": float((p_clean[phish] - p_adv[phish]).mean()) if phish.any() else float("nan"),
     }
 
 
@@ -109,6 +143,11 @@ if __name__ == "__main__":
     assert deltas({"accuracy": .9, "recall": .8, "f1": .85}, {"accuracy": .8, "recall": .5, "f1": .6})["delta_recall"] == .5 - .8
     assert adversarial_recall([0.9, 0.3, 0.6, 0.1]) == 0.5
 
+    u = ["a.web.app", "b.web.app/x", "c.com", "https://www.e.web.app/", "web.app", "notweb.app", "x.com/web.app"]
+    assert list(group_mask(u, "web.app")) == [True, True, False, True, True, False, False]
+    assert group_mask(u, "other").sum() == 3 and group_mask(u, "all").all()
+    assert evaluate([0, 0, 1], [.9, .2, .1], urls=["a.web.app", "b.web.app", "c.com"], group="web.app")["n"] == 2
+    
     assert edited_parts("a.b.com/x?q=1#f", "a.b.com/x?q=1#f") == "none"
     assert edited_parts("a.b.com/x?q=1#f", "c.b.com/x?q=1#f") == "subdomain"
     assert edited_parts("a.b.com/x?q=1#f", "a.b.com/y?q=2#f") == "path+query"
