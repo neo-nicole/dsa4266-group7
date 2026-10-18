@@ -54,6 +54,46 @@ def adversarial_recall(p_adv, threshold=0.5):
     return float((p_adv >= threshold).mean()) if len(p_adv) else float("nan")
 
 
+def web_app(urls):
+    # hosted on web.app: only in test (all phishing), never in train/val, so reported as its own group
+    return np.array([parts(u)[0].endswith(".web.app") for u in urls], dtype=bool)
+
+
+def robust_recall(p_clean, p_adv, threshold=0.5):
+    # share of phishing urls detected both before and after the attack (p_adv = p_clean if not attacked)
+    # base = all phishing urls, so it is comparable across models (unlike adversarial_recall)
+    p_clean, p_adv = np.asarray(p_clean), np.asarray(p_adv)
+    return float(((p_clean >= threshold) & (p_adv >= threshold)).mean()) if len(p_clean) else float("nan")
+
+
+def group_evaluation(test, p_test, adv, p_adv_clean, p_adv, threshold=0.5):
+    # metrics on test_original and test_original + test_adversarial, for all / web.app / other urls
+    # test: URL, label; adv: attack csv (all attacked rows); p_*: this model's p_phish on test.URL, adv.orig_URL, adv.URL
+    def metrics(labels, p):
+        if len(set(labels)) == 2:
+            return evaluate(labels, p, threshold)
+        assert set(labels) == {PHISH}  # web.app: no legit urls, so only recall means anything
+        return {k: float("nan") for k in ["accuracy", "precision", "f1", "roc_auc", "pr_auc"]} | {
+            "recall": adversarial_recall(p, threshold)}
+
+    test = test[["URL", "label"]].assign(p=np.asarray(p_test), web=web_app(test.URL))
+    adv = adv.assign(p_clean=np.asarray(p_adv_clean), p_adv=np.asarray(p_adv), web=web_app(adv.orig_URL))
+    rows = []
+    for group in ["all", "web.app", "other"]:
+        t, a = (test, adv) if group == "all" else (test[test.web == (group == "web.app")], adv[adv.web == (group == "web.app")])
+        e = adversarial_rows(a)
+        m_orig = metrics(t.label, t.p)
+        m_both = metrics(pd.concat([t.label, e.label]), np.concatenate([t.p, e.p_adv]))
+        ph = t[t.label == PHISH]
+        ph_adv = ph.URL.map(dict(zip(a.orig_URL, a.p_adv))).fillna(ph.p)  # not attacked: score on the original
+        rows += [{"group": group, "test_set": "test_original", **m_orig},
+                 {"group": group, "test_set": "test_original + test_adversarial", **m_both,
+                  **adversarial_metrics(a.label, a.p_clean, a.p_adv, threshold),
+                  "adversarial_recall": adversarial_recall(e.p_adv, threshold),
+                  "robust_recall": robust_recall(ph.p, ph_adv, threshold), **deltas(m_orig, m_both)}]
+    return pd.DataFrame(rows)
+
+
 def edited_parts(orig, adv):
     # which URL parts the attack changed, e.g. "subdomain" or "path+query" ("none" if unchanged)
     def split(url):
@@ -124,6 +164,21 @@ if __name__ == "__main__":
     assert s["success_within_edits"] == {1: 0.25, 2: 0.25, 3: 0.5}
     assert s["edited_parts"] == {"path": 2, "subdomain": 1} and s["flipped_parts"] == {"subdomain": 1, "path": 1}
     assert list(adversarial_rows(adv).URL) == ["e.b.com", "b.com/xy"]
+
+    assert list(web_app(["a.web.app/x", "https://b.web.app", "web.app.evil.com"])) == [True, True, False]
+    assert robust_recall([0.9, 0.8, 0.2, 0.7], [0.3, 0.8, 0.2, 0.6]) == 0.5
+
+    # groups: web.app = a, b (phishing); other = c (phishing), d, e (legit, e is a false positive)
+    test = pd.DataFrame({"URL": ["a.web.app", "b.web.app/x", "c.com/p", "d.com", "e.com"], "label": [0, 0, 0, 1, 1]})
+    adv = pd.DataFrame({"orig_URL": ["a.web.app", "b.web.app/x", "c.com/p"], "URL": ["ab.web.app", "b.web.app/x", "c.com/q"],
+                        "label": 0, "n_edits": [1, 0, 1], "duplicate": False})
+    g = group_evaluation(test, [0.9, 0.8, 0.9, 0.2, 0.6], adv, [0.9, 0.8, 0.9], [0.3, 0.8, 0.7]).set_index(["group", "test_set"])
+    assert len(g) == 6
+    w, o, al = (g.loc[(grp, "test_original + test_adversarial")] for grp in ["web.app", "other", "all"])
+    assert g.loc[("web.app", "test_original"), "recall"] == 1 and np.isclose(w.recall, 2 / 3) and np.isnan(w.f1)
+    assert w.robust_recall == 0.5 and w.attack_success_rate == 0.5 and np.isclose(w.delta_recall, -1 / 3)
+    assert o.recall == 1 and o.precision == 2 / 3 and o.robust_recall == 1 and o.attack_success_rate == 0
+    assert np.isclose(al.robust_recall, 2 / 3) and np.isclose(al.attack_success_rate, 1 / 3)
 
     # sanity check: path rule baseline on test
     from load_data import load_splits
