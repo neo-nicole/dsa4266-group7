@@ -23,7 +23,7 @@ from evaluate import (
     save_preds,
 )
 from load_data import load_config, load_splits
-from validate_adv import SCHEME, drop_invalid_originals, edit_distance, invalid_reason, parts
+from validate_adv import SCHEME, edit_distance, invalid_reason, parts
 
 
 HOST_CHARS = string.ascii_lowercase + string.digits + "-."
