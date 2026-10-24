@@ -4,34 +4,34 @@
  "phishing": 9694,
  "missed_by_model": 1818,
  "attacked": 7876,
- "flipped": 740,
- "edited_not_flipped": 6392,
+ "flipped": 739,
+ "edited_not_flipped": 6393,
  "not_edited": 744,
- "duplicates_dropped": 685,
+ "duplicates_dropped": 687,
  "success_within_edits": {
   "1": 0.0085068562722194,
   "2": 0.05281868969019807,
-  "3": 0.09395632300660234
+  "3": 0.09382935500253936
  },
  "edited_parts": {
-  "subdomain": 5626,
-  "fragment": 474,
-  "path+fragment": 306,
-  "path": 172,
-  "subdomain+path": 139,
-  "query": 122,
-  "path+query": 106,
-  "subdomain+query": 63,
-  "subdomain+path+fragment": 59,
-  "subdomain+fragment": 30,
-  "path+query+fragment": 17,
-  "subdomain+path+query": 12,
-  "subdomain+path+query+fragment": 5,
+  "subdomain": 5619,
+  "fragment": 478,
+  "path+fragment": 299,
+  "path": 171,
+  "subdomain+path": 143,
+  "query": 123,
+  "path+query": 109,
+  "subdomain+query": 68,
+  "subdomain+path+fragment": 65,
+  "subdomain+fragment": 23,
+  "path+query+fragment": 18,
+  "subdomain+path+query": 11,
+  "subdomain+path+query+fragment": 4,
   "subdomain+query+fragment": 1
  },
  "flipped_parts": {
   "fragment": 398,
-  "path+fragment": 127,
+  "path+fragment": 126,
   "subdomain": 80,
   "query": 59,
   "path+query": 46,
@@ -40,8 +40,8 @@
  },
  "n_edits": {
   "0": 744,
-  "1": 115,
-  "2": 402,
-  "3": 6615
+  "1": 116,
+  "2": 404,
+  "3": 6612
  }
 }
