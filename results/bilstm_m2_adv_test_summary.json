@@ -1,0 +1,33 @@
+{
+ "attacked": 7876,
+ "flipped": 65,
+ "edited_not_flipped": 6686,
+ "not_edited": 1125,
+ "duplicates_dropped": 757,
+ "success_within_edits": {
+  "1": 0.0008887760284408329,
+  "2": 0.0035551041137633316,
+  "3": 0.008252920264093449
+ },
+ "edited_parts": {
+  "subdomain": 5658,
+  "path": 627,
+  "query": 233,
+  "path+query": 122,
+  "fragment": 60,
+  "subdomain+path+fragment": 14,
+  "subdomain+path": 13,
+  "path+fragment": 9,
+  "subdomain+path+query": 4,
+  "subdomain+fragment": 3,
+  "subdomain+query": 3,
+  "path+query+fragment": 3,
+  "query+fragment": 2
+ },
+ "flipped_parts": {
+  "subdomain": 34,
+  "path": 28,
+  "path+query": 2,
+  "query": 1
+ }
+}
