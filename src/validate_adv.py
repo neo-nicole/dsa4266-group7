@@ -83,6 +83,18 @@ def invalid_reason(orig, adv, k=3):
     return structure_error(orig, adv)
 
 
+def valid_original(url):
+    # True if url is itself a well-formed URL, so adversarial examples can be derived from it
+    return structure_error(url, url) == ""
+
+
+def drop_invalid_originals(df, col="URL"):
+    mask = df[col].astype(str).map(valid_original)
+    if (~mask).any():
+        print(f"dropping {int((~mask).sum())} invalid original URLs before attack")
+    return df[mask]
+
+
 if __name__ == "__main__":
     # quick self-test
     o = "login.paypal-x.com/verify?id=1#top"
