@@ -59,19 +59,19 @@ Weights are saved to `models/` or `checkpoints/` (not in git).
 | Notebook | Step | What it does |
 |---|---|---|
 | `eda/cleaning_and_eda` | Data cleaning | Cleans the raw CSV, EDA, domain-grouped splits, builds `vocab.json` / `config.json` |
-| `cnn/cnn_baseline` | 1. MODEL 1 (baseline) | Train CNN MODEL 1, evaluate on `test_original` |
-| `cnn/cnn_adversarial` | 2. Generate adversarial examples | Attack MODEL 1 on train and test, build original + adversarial sets |
-| `cnn/cnn_model2` | 3. MODEL 2 (adversarially trained) | Train CNN MODEL 2, attack it on test, Set 1/2 evaluation by group |
-| `bilstm/bilstm_model1` | 1. MODEL 1 (baseline) | Tune and train BiLSTM MODEL 1, evaluate on `test_original` |
-| `bilstm/bilstm_generate_examples_train` | 2. Generate adversarial examples | Attack MODEL 1 on train → `bilstm_adv_train.csv` |
-| `bilstm/bilstm_generate_examples_test` | 2. Generate adversarial examples | Attack MODEL 1 on test → `bilstm_adv_test.csv`, evaluate MODEL 1 |
-| `bilstm/bilstm_model2` | 3. MODEL 2 (adversarially trained) | Train BiLSTM MODEL 2, attack it on test, Set 1/2 evaluation by group |
-| `urlbert/urlbert_train_model1` | 1. MODEL 1 (baseline) | Fine-tune URLBERT MODEL 1, evaluate on `test_original` |
-| `urlbert/urlbert_generate_train_adversarial` | 2. Generate adversarial examples | Attack MODEL 1 on train → `train_adversarial` |
-| `urlbert/urlbert_generate_test_adversarial_1` | 2. Generate adversarial examples | Attack MODEL 1 on test → `test_adversarial_1`, evaluate MODEL 1 |
-| `urlbert/urlbert_train_model2` | 3. MODEL 2 (adversarially trained) | Train URLBERT MODEL 2, evaluate by group |
-| `urlbert/urlbert_generate_test_adversarial_2` | 3. MODEL 2 (adversarially trained) | Attack MODEL 2 on test → `test_adversarial_2` |
-| `urlbert/urlbert_eval_model2` | 3. MODEL 2 (adversarially trained) | `urlbert_train_model2` + Set 2 evaluation of MODEL 2 on `test_adversarial_2` |
+| `cnn/cnn_baseline` | 1 | Train CNN MODEL 1, evaluate on `test_original` |
+| `cnn/cnn_adversarial` | 2 | Attack MODEL 1 on train and test, build original + adversarial sets |
+| `cnn/cnn_model2` | 3 | Train CNN MODEL 2, attack it on test, Set 1/2 evaluation by group |
+| `bilstm/bilstm_model1` | 1 | Tune and train BiLSTM MODEL 1, evaluate on `test_original` |
+| `bilstm/bilstm_generate_examples_train` | 2 | Attack MODEL 1 on train → `bilstm_adv_train.csv` |
+| `bilstm/bilstm_generate_examples_test` | 2 | Attack MODEL 1 on test → `bilstm_adv_test.csv`, evaluate MODEL 1 |
+| `bilstm/bilstm_model2` | 3 | Train BiLSTM MODEL 2, attack it on test, Set 1/2 evaluation by group |
+| `urlbert/urlbert_train_model1` | 1 | Fine-tune URLBERT MODEL 1, evaluate on `test_original` |
+| `urlbert/urlbert_generate_train_adversarial` | 2 | Attack MODEL 1 on train → `train_adversarial` |
+| `urlbert/urlbert_generate_test_adversarial_1` | 2 | Attack MODEL 1 on test → `test_adversarial_1`, evaluate MODEL 1 |
+| `urlbert/urlbert_train_model2` | 3 | Train URLBERT MODEL 2, evaluate by group |
+| `urlbert/urlbert_generate_test_adversarial_2` | 3 | Attack MODEL 2 on test → `test_adversarial_2` |
+| `urlbert/urlbert_eval_model2` | 3 | `urlbert_train_model2` + Set 2 evaluation of MODEL 2 on `test_adversarial_2` |
 | `urlbert/urlbert_generate_train_adversarial_2` | Extra | Attack MODEL 2 on train (not part of the pipeline above) |
 | `analysis/compare_training_curves` | Analysis | Training/validation loss of all three models on shared axes |
 | `analysis/embedding_plot` | Analysis | PCA of penultimate-layer embeddings: clean vs adversarial URLs, MODEL 1 vs 2 |
