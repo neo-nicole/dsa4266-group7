@@ -5,7 +5,7 @@ checkpoints/
 runs/
 *.pt
 .venv/
-results/*smoke*
-embedding_plots/projector/URLBERT_S2_vecs.tsv
-embedding_plots/projector/URLBERT_S3_vecs.tsv
-embedding_plots/projector/URLBERT_S4_vecs.tsv
+results/**/*smoke*
+results/embeddings/projector/URLBERT_S2_vecs.tsv
+results/embeddings/projector/URLBERT_S3_vecs.tsv
+results/embeddings/projector/URLBERT_S4_vecs.tsv

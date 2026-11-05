@@ -8,15 +8,20 @@ Dataset: [PhiUSIIL Phishing URL](https://archive.ics.uci.edu/dataset/967/phiusii
 ```
 data/
   raw/                  original PhiUSIIL csv
-  train.csv, val.csv, test.csv, vocab.json, config.json   cleaned splits (from cleaning_and_eda)
-notebooks/              one notebook per step / model
-  cleaning_and_eda.ipynb
-  urlbert_training.ipynb
+  train.csv, val.csv, test.csv, vocab.json, config.json   cleaned splits (from eda/cleaning_and_eda)
+  adversarial/{cnn,bilstm,urlbert}/   adversarial URLs per model
+notebooks/
+  eda/                  cleaning + EDA (run first)
+  cnn/, bilstm/, urlbert/   train MODEL 1, generate adversarial examples, train/eval MODEL 2
+  analysis/             cross-model loss curves, embedding plots
 src/                    shared code
   load_data.py          load splits, config, vocab
   evaluate.py           metrics (clean + adversarial), save predictions
-models/                 pretrained model files (URLBERT config + vocab; weights not in git)
-results/                metrics, plots, prediction csvs (created by model notebooks)
+  generate_bilstm_adversarial.py, validate_adv.py
+models/                 model weights (URLBERT config + vocab in git; most .pt not in git)
+results/
+  {cnn,bilstm,urlbert}/ metrics, plots, prediction csvs per model
+  embeddings/           embedding plots + projector files
 ```
 
 ## Setup
@@ -27,7 +32,7 @@ python src/evaluate.py   # self-check
 
 In a notebook:
 ```python
-import sys; sys.path.append("../src")
+import sys; sys.path.append("../../src")
 from load_data import load_splits
 from evaluate import evaluate
 ```

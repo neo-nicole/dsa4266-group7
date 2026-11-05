@@ -267,7 +267,7 @@ def parse_args():
     parser.add_argument("--checkpoint", type=Path, default=Path("models/bilstm_model1.pt"))
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--partial", type=Path, default=None)
-    parser.add_argument("--results-dir", type=Path, default=Path("results"))
+    parser.add_argument("--results-dir", type=Path, default=Path("results/bilstm"))
     parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args()
 
@@ -315,7 +315,7 @@ def main():
     if args.n is not None:
         targets = targets.sample(min(args.n, len(targets)), random_state=args.seed)
 
-    output = args.output or Path("data") / f"bilstm_adv_{args.split}.csv"
+    output = args.output or Path("data/adversarial/bilstm") / f"bilstm_adv_{args.split}.csv"
     partial = args.partial or output.with_name(output.stem + "_partial.csv")
     output.parent.mkdir(parents=True, exist_ok=True)
     partial.parent.mkdir(parents=True, exist_ok=True)
